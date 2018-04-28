@@ -1,0 +1,31 @@
+// Project: Mouse test plane CS 
+// Created: 2018-04-27
+
+// show all errors
+SetErrorMode(2)
+
+// set window properties
+SetWindowTitle( "Mouse test plane CS" )
+SetWindowSize( 720,1280, 0 )
+SetWindowAllowResize( 1 ) // allow the user to resize the window
+
+// set display properties
+SetVirtualResolution( 720, 1280) // doesn't have to match the window
+SetOrientationAllowed( 1, 1, 1, 1 ) // allow both portrait and landscape on mobile devices
+SetSyncRate( 30, 0 ) // 30fps instead of 60 to save battery
+SetScissor( 0,0,0,0 ) // use the maximum available screen space, no black borders
+UseNewDefaultFonts( 1 ) // since version 2.0.22 we can use nicer default fonts
+////////////////////////////////////////////////////////////////////////////////////////////////
+LoadImage(1,"Plane.png")
+CreateSprite(1,1)
+SetSpriteScale(1,4,4)
+px = GetVirtualWidth()/2 - GetSpriteWidth(1)/2
+py = GetVirtualHeight() - GetSpriteHeight(1) - 40
+SetSpritePosition(1,px,py)
+
+
+do
+    SetSpritePosition(1, GetPointerX() - GetSpriteWidth(1)/2 , GetPointerY() - GetSpriteHeight(1)/2)
+
+    Sync()
+loop
