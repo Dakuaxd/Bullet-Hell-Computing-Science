@@ -1,0 +1,93 @@
+
+// Project: game 
+// Created: 2018-05-01
+
+// show all errors
+SetErrorMode(2)
+
+// set window properties
+SetWindowTitle( "game" )
+SetWindowSize( 720,1280 , 0 )
+SetWindowAllowResize( 1 ) // allow the user to resize the window
+
+// set display properties
+SetVirtualResolution( 720,1280 ) // doesn't have to match the window
+SetOrientationAllowed( 1, 1, 1, 1 ) // allow both portrait and landscape on mobile devices
+SetSyncRate( 30, 0 ) // 30fps instead of 60 to save battery
+SetScissor( 0,0,0,0 ) // use the maximum available screen space, no black borders
+UseNewDefaultFonts( 1 ) // since version 2.0.22 we can use nicer default fonts
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+gosub Text
+
+
+do
+	if intro = 1
+		gosub intro
+	endif
+	if menu = 1
+		gosub menuclickable
+    endif
+    Sync()
+loop
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Text:
+// for intro
+	CreateText(1, "IRONCLAD")
+	SetTextSize(1, 160)
+	SetTextPosition(1, GetVirtualWidth()/2 - GetTextTotalWidth(1)/2, GetVirtualHeight()/2 - GetTextTotalHeight(1)/2)
+	SetTextColor(1, 205,19,10,255)
+	CreateText(2,"Click anywhere to begin")
+	SetTextSize(2,30)
+	SetTextPosition(2,GetVirtualWidth()/2 - GetTextTotalWidth(2)/2, GetVirtualHeight()/2 - GetTextTotalHeight(2)/2 + 100)
+// For menu
+	CreateText(3,"Play?")
+	SetTextSize(3,170)
+	SettextPosition(3,GetVirtualWidth()/2 - GetTextTotalWidth(3)/2,(GetVirtualHeight() - GetTextTotalHeight(3))/3 - 300)
+	SettextVisible(3,0)
+	
+	CreateText(4, "Controls")
+	SettextSize(4,170)
+	SettextPosition(4,GetVirtualWidth()/2 - GetTextTotalWidth(4)/2, ((GetVirtualHeight() - GetTextTotalHeight(4))/3)*2 -300 )
+	SetTextVisible(4,0)
+	
+	
+return
+
+
+
+
+variable:
+	intro = 1
+	menu = 1
+	wasd = 1
+	mouse = 0
+	game = 0
+	controls = 0
+return
+
+
+
+intro:
+	if GetPointerReleased() = 1 // Enter key
+		SetTextVisible(1,0)
+		SetTextVisible(2,0)
+		SetTextVisible(3,1)
+		SetTextVisible(4,1)
+	endif
+return
+
+menuclickable:
+	if GetPointerReleased()
+		if GetTextHitTest(3, GetPointerX(), getpointery())
+			Print("playing game")
+			game = 1
+		elseif GetTextHitTest(4, GetPointerX(), GetPointerY())
+			Print("controls")
+			controls = 1
+		endif
+	endif
+return
