@@ -65,7 +65,7 @@ menuselect:// dillon's
 	
 return
 
-movement:
+movement:// Dillon's
 	if menuselect = 1
 		SetSpritePosition(1, GetPointerX() - GetSpriteWidth(1)/2 , GetPointerY() - GetSpriteHeight(1)/2)
 	endif
