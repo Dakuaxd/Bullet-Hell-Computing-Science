@@ -29,13 +29,9 @@ SetSpritePosition(1,px,py)
 
 
 // Variables
-controlselect = 1
-menuselect = 1
-movementtype = 1
+controlselect = 1 // for picking wasd or mouse (1 is mouse, 2 is wasd)
 intro = 1
 menu = 1
-wasd = 1
-mouse = 0
 game = 0
 controls = 0
 
@@ -62,14 +58,14 @@ intro:
 	endif
 return
 
-menuselect:// dillon's
+menuselect:// clicking on the menu
 	if GetPointerReleased()
 		if GetTextHitTest(3, GetPointerX(), getpointery())
 			Print("playing game")
 			game = 1
 		else
 			if GetTextHitTest(4, GetPointerX(), GetPointerY())
-				Print("controls")
+				Print("controls")// moving to controls subroutine
 				controls = 1
 			endif
 		endif
@@ -84,13 +80,13 @@ controls:
 		SetTextVisible(6, 1)
 		if GetPointerReleased()
 			if GetTextHitTest(5, GetPointerX(), GetpointerY())
-				controlselect = 2
+				controlselect = 2 // clicking wasd
 			endif
 			if GetTextHitTest(6, GetPointerx(), GetPointery())
-				controlselect = 1
+				controlselect = 1 // clicking mouse
 			endif
 		endif
-		if GetRawKeyPressed(27) = 1
+		if GetRawKeyPressed(27) = 1 // hitting escape to go back
 			SetTextVisible(4, 1)
 			SetTextVisible(3, 1)
 			SetTextVisible(5, 0)
@@ -102,10 +98,10 @@ controls:
 return
 
 movement:
-	if controlselect = 1
+	if controlselect = 1 // mouse pointer control script
 		SetSpritePosition(1, GetPointerX() - GetSpriteWidth(1)/2 , GetPointerY() - GetSpriteHeight(1)/2)
 	endif
-	if controlselect = 2
+	if controlselect = 2 // wasd control script
 		if GetRawKeyState(87) = 1
 			py = py - 12
 		endif
