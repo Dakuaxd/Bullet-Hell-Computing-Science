@@ -25,6 +25,7 @@ CreateSprite(1,1)
 SetSpriteScale(1,3,3)
 px = GetVirtualWidth()/2 - GetSpriteWidth(1)/2
 py = GetVirtualHeight() - GetSpriteHeight(1) - 40
+SetSpriteVisible(1, 0)
 SetSpritePosition(1,px,py)
 
 
@@ -170,6 +171,5 @@ Text:
 	SetTextSize(6, 130)
 	SetTextPosition(6, GetVirtualWidth()/2 - GetTextTotalWidth(6)/2, GetVirtualHeight()/2 - GetTExtTotalHeight(6)/2 + 200)
 	SetTextVisible(6, 0)
-	
-	SetSpriteVisible(1, 0)
+
 return
