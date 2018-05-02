@@ -51,10 +51,12 @@ loop
 
 intro:
 	if GetPointerReleased() = 1 // Enter key
+		SetTextVisible(0,0) // added the word "OPERATION" in front for edge effect
 		SetTextVisible(1,0)
 		SetTextVisible(2,0)
 		SetTextVisible(3,1)
 		SetTextVisible(4,1)
+		SetSpriteVisible(1, 0)
 	endif
 return
 
@@ -78,6 +80,7 @@ controls:
 		SetTextVisible(3, 0)
 		SetTextVisible(5, 1)
 		SetTextVisible(6, 1)
+		SetSpriteVisible(1, 1) // Make it so the sprite is visible in the control screen to test the controls
 		if GetPointerReleased()
 			if GetTextHitTest(5, GetPointerX(), GetpointerY())
 				controlselect = 2 // clicking wasd
@@ -91,6 +94,7 @@ controls:
 			SetTextVisible(3, 1)
 			SetTextVisible(5, 0)
 			SetTextVisible(6, 0)
+			SetSpriteVisible(1, 0)
 			controls = 0
 		endif
 	endif
@@ -133,10 +137,16 @@ return
 
 Text:
 // for intro
+	CreateText(0, "OPERATION")
+	SetTextSize(0, 160)
+	SetTextPosition(0, GetVirtualWidth()/2 - GetTextTotalWidth(0)/2, GetVirtualHeight()/2 - GetTextTotalHeight(0)/2 - 100)
+	SetTextColor(0, 205,19,10,255)
+	
 	CreateText(1, "IRONCLAD")
 	SetTextSize(1, 160)
 	SetTextPosition(1, GetVirtualWidth()/2 - GetTextTotalWidth(1)/2, GetVirtualHeight()/2 - GetTextTotalHeight(1)/2)
 	SetTextColor(1, 205,19,10,255)
+	
 	CreateText(2,"Click anywhere to begin")
 	SetTextSize(2,30)
 	SetTextPosition(2,GetVirtualWidth()/2 - GetTextTotalWidth(2)/2, GetVirtualHeight()/2 - GetTextTotalHeight(2)/2 + 100)
