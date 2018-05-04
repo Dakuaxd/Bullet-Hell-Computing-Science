@@ -215,7 +215,7 @@ for s=1 to 100
 next s
 Return
 
-makebullets:
+makebullets: // **Literally all of this is to make sure the bullets smoothly get fired and don't have a huge gap inbetween them (7 sets of bullets)
 	LoadImage(99,"MediumBullet.png")
 	for pb = 100 to 113
 		CreateSprite(pb, 99)
