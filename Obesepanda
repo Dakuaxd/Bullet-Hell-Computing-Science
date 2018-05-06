@@ -28,23 +28,13 @@ py = GetVirtualHeight() - GetSpriteHeight(1) - 40
 SetSpriteVisible(1, 0)
 SetSpritePosition(1,px,py)
 
+/*LoadImage(999, "Bigbullet.png")
+CreateSprite(999,999)
+SetSpriteScale(999,1,1)
+SetSpritePosition(999, 9000,9000) // off the screen*/
 
-// Variables
-controlselect = 1 // for picking wasd or mouse (1 is mouse, 2 is wasd)
-intro = 1
-menu = 1
-game = 0
-controls = 0
-shoot = 0
-bulletcreate = 0
-bulletshot = 0
-bulletshot1 = 0
-bulletshot2 = 0
-bulletshot3 = 0
-x as integer[200]
-y as integer [200]
-bullet as integer[200]
 
+gosub variables
 gosub makebullets
 gosub text
 gosub Makedots
@@ -58,13 +48,32 @@ do
 		SetTextVisible(3,0)
 		SetTextVisible(4,0)
 		SetSpriteVisible(1,1)
+		//gosub bigbullet
 		gosub Movedots
 		gosub movebullets
 	endif
 
     Sync()
 loop
-
+variables:
+// Variables
+	controlselect = 1 // for picking wasd or mouse (1 is mouse, 2 is wasd)
+	intro = 1
+	menu = 0
+	game = 0
+	controls = 0
+	shoot = 0
+	bulletcreate = 0
+	bulletshot = 0
+	bulletshot1 = 0
+	bulletshot2 = 0
+	bulletshot3 = 0
+	powerup = 0
+	bigbullety = 0
+	x as integer[200]
+	y as integer [200]
+	bullet as integer[200]
+return
 intro:
 	if intro = 1
 		
@@ -72,9 +81,6 @@ intro:
 				DeleteText(0) // added the word "OPERATION" in front for edge effect
 				DeleteText(1)
 				DeleteText(2)
-				SettextPosition(3,GetVirtualWidth()/2 - GetTextTotalWidth(3)/2,(GetVirtualHeight() - GetTextTotalHeight(3))/3 - 300)
-				SettextPosition(4,GetVirtualWidth()/2 - GetTextTotalWidth(4)/2, ((GetVirtualHeight() - GetTextTotalHeight(4))/3)*2 -300 )
-				SetSpriteVisible(1, 0)
 				menu = 1
 				intro = 0
 			endif
@@ -82,18 +88,26 @@ intro:
 return
 
 menuselect:// clicking on the menu
-	if GetPointerReleased()
-		if GetTextHitTest(3, GetPointerX(), getpointery())
-			game = 1
-			SettextPosition(3,9000,9000)
-			SettextPosition(4,9000,9000)
-			SetTextPosition(5,9000,9000)
-			SetTextPosition(6,9000,9000)
-		else
-			if GetTextHitTest(4, GetPointerX(), GetPointerY())
-				controls = 1
+	if menu = 1
+		
+		SettextPosition(3,GetVirtualWidth()/2 - GetTextTotalWidth(3)/2,(GetVirtualHeight() - GetTextTotalHeight(3))/3 - 300)
+		SettextPosition(4,GetVirtualWidth()/2 - GetTextTotalWidth(4)/2, ((GetVirtualHeight() - GetTextTotalHeight(4))/3)*2 -300 )
+		SetSpriteVisible(1, 0)
+		if GetPointerPressed()
+			if GetTextHitTest(3, GetPointerX(), getpointery())
+				game = 1
+				menu = 0
 				SettextPosition(3,9000,9000)
 				SettextPosition(4,9000,9000)
+				SetTextPosition(5,9000,9000)
+				SetTextPosition(6,9000,9000)
+			else
+				if GetTextHitTest(4, GetPointerX(), GetPointerY())
+					controls = 1
+					menu = 0
+					SettextPosition(3,9000,9000)
+					SettextPosition(4,9000,9000)
+				endif
 			endif
 		endif
 	endif
@@ -172,7 +186,7 @@ Text:
 	SetTextPosition(1, GetVirtualWidth()/2 - GetTextTotalWidth(1)/2, GetVirtualHeight()/2 - GetTextTotalHeight(1)/2)
 	SetTextColor(1, 205,19,10,255)
 	
-	 CreateText(2,"Click Enter to begin")
+	 CreateText(2,"Click anywhere to begin")
 	SetTextSize(2,30)
 	SetTextPosition(2,GetVirtualWidth()/2 - GetTextTotalWidth(2)/2, GetVirtualHeight()/2 - GetTextTotalHeight(2)/2 + 100)
 // For menu
@@ -193,7 +207,7 @@ Text:
 	SetTextSize(6, 130)
 	SetTextPosition(6,9000,9000)
 	
-	
+
 	
 return
 
@@ -226,23 +240,6 @@ makebullets: // **Literally all of this is to make sure the bullets smoothly get
 return
 
 movebullets:
-/*if GetPointerPressed() = 1 
-	bulletshot = bulletshot + 1
-	x[100] = GetSpriteX(1) + GetSpriteWidth(1)/2 - GetSpriteWidth(100)/2
-	y[100] = GetSpriteY(1)
-endif
-
-for i = 100 to 110
-	if bulletshot = 100
-		y[i] = y[i] - 30
-		x[i] = GetSpriteX(1) + GetSpriteWidth(1)/2 - GetSpriteWidth(100)/2
-		SetSpritePosition(i, x[100], y[100])
-		if y[i] < -20
-			bulletshot = 99
-		endif
-		SetSpriteY(i, 2000)
-	endif
-next i*/
 print(GetSeconds())
 print(y[100])
 print(y[102])
@@ -251,6 +248,7 @@ print(y[106])
 print(y[108])
 print(y[110])
 print(y[112])
+print(str(bigbullety))
 	if GetPointerPressed() = 1 and bulletshot = 0 and bulletshot1 = 0 and bulletshot2 = 0 and bulletshot3 = 0 and bulletshot4 = 0 and bulletshot5 = 0
 		x[100] = GetSpriteX(1) + GetSpriteWidth(1)/2 - GetSpriteWidth(100) - GetSpriteWidth(100)/2
 		x[101] = GetSpriteX(1) + GetSpriteWidth(1)/2 + GetSpriteWidth(100) - GetSpriteWidth(100)/2
@@ -440,4 +438,24 @@ bulletpositions:
 		y[i]  = 1000
 		SetSpritePosition(i, x[ i], y[i] )
 	next i
+return
+
+bigbullet:
+	if GetRawKeyPressed(66) = 1  and powerup = 0// Space key
+		if powerup = 0
+			SetSpritePosition(999, GetSpriteX(1) + GetSpriteWidth(1)/2 - GetSpriteWidth(999)/2, GetspriteY(1))
+			powerup = 1
+		endif
+	endif
+
+	if powerup = 1
+		bigbullety = bigbullety - 40
+		SetSpritePosition(999,GetSpriteX(1)+GetSpriteWidth(1)/2, bigbullety)
+	endif
+		
+	
+	if bigbullety < -100
+			powerup = 0
+			SetSpritePosition(999,9000,9000) // hiding it again
+	endif
 return
