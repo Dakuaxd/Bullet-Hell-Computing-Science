@@ -1,7 +1,7 @@
 // Name: Shaishav Shah, Dillon Ren
 // Project: BULLET HELL 
 // Created: 2018-04-27
-// Last Edit: N/A
+// Last Edit: 2018-05-06
 
 // show all errors
 SetErrorMode(2)
@@ -135,6 +135,7 @@ controls:
 			SetTextPosition(6,9000,9000)
 			SetSpriteVisible(1, 0)
 			controls = 0
+			menu = 1
 		endif
 	endif
 			
