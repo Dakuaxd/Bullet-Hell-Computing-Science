@@ -74,7 +74,7 @@ variables:
 	powerup = 0
 	bigbullety = 0
 	bigbulletx = 0
-	level1bullet = 0
+	level = 1
 	plane as integer [50]
 	x as integer[200]
 	y as integer [200]
@@ -509,57 +509,65 @@ makeenemy:
 return
 
 level1:
-	if setplane[1] = 0
-		ey[1] = -10
-		ex[1] = GetVirtualWidth()/2
-		SetSpritePosition(200,ex[1],ey[1])
-		setplane[1] = 1
+	if level = 1
+		if setplane[1] = 0
+			ey[1] = -10
+			ex[1] = GetVirtualWidth()/2 - GetSpriteWidth(200)/2
+			SetSpritePosition(200,ex[1],ey[1])
+			setplane[1] = 1
+		endif
+		if not ey[1] > GetVirtualHeight() and plane[1] = 1
+			ey[1] = ey[1] + 5
+			SetSpritePosition(200, ex[1],ey[1])
+		endif
+		if ey[1] > GetVirtualHeight()/2 - GetSpriteHeight(200)
+			ey[1] = GetVirtualHeight()/2  - GetSpriteHeight(200)
+		endif
+		
+		for i = 300 to 300
+			If Timer() < 1
+				ebx[i] = GetSpriteX(200) + GetSpriteWidth(200)/2 - GetSpriteWidth(i)/2
+				eby[i] = GetSpriteY(200) + GetSpriteHeight(200)/2 - GetSpriteheight(i)/2
+				SetSpritePosition(i, ebx[i], eby[i])
+			endif
+			if Timer() > 1
+				eby[i] = eby[i] + 20
+				SetSpritePosition(i, ebx[i], eby[i])
+			endif 
+			if eby[i] > GetVirtualHeight()
+				SetSpritePosition(i,9000,9000)
+				ResetTimer()
+			endif
+		next i
+		
+		
+		for i = 100 to 113
+			if GetSpriteCollision(i,200) or GetSpriteCollision(i,999)
+				ex[1] = GetVirtualWidth()/2
+				ey[1] = 0-GetSpriteHeight(200)
+				plane[1] = 0
+				level = 2
+				SetSpritePosition(200,ex[1], ey[1])
+			endif
+		next i
+	else
+		SetSpritePosition(300,9000,9000)
 	endif
-	if not ey[1] > GetVirtualHeight() and plane[1] = 1
-		ey[1] = ey[1] + 2
-		SetSpritePosition(200, ex[1],ey[1])
-	endif
-	if ey[1] > GetVirtualHeight()
-		SetSpritePosition(200,9000,9000)
-	endif
+return
 
-/*
-	If Timer() < 1
-		ebx[300] = GetSpriteX(200) + GetSpriteWidth(200)/2 - GetSpriteWidth(300)/2
-		eby[300] = GetSpriteY(200) + GetSpriteHeight(200)/2 - GetSpriteheight(300)/2
-		SetSpritePosition(300, ebx[300], eby[300])
+
+level2:
+	if level = 2
+		if setplane[2] = 0 and setplane[3] = 0 
+			ex[2] = GetVirtualWidth()/4
+			ey[2] = -10
+			ex[3] = (GetVirtualWidth()/4)*3
+			ey[3] = -10
+			SetSpritePosition(201, ex[2],ey[2])
+			SetSpritePosition(202, ex[3], ey[3])
+			setplane[2] = 1
+			setplane[3] = 1
+		endif
+			
 	endif
-	if Timer() > 1
-		eby[300] = eby[300] + 20
-		SetSpritePosition(300, ebx[300], eby[300])
-	endif 
-	*/
-	
-	for i = 300 to 300
-		If Timer() < 1
-			ebx[i] = GetSpriteX(200) + GetSpriteWidth(200)/2 - GetSpriteWidth(i)/2
-			eby[i] = GetSpriteY(200) + GetSpriteHeight(200)/2 - GetSpriteheight(i)/2
-			SetSpritePosition(i, ebx[i], eby[i])
-		endif
-		if Timer() > 1
-			eby[i] = eby[i] + 20
-			SetSpritePosition(i, ebx[i], eby[i])
-		endif 
-		if eby[i] > GetVirtualHeight()
-			SetSpritePosition(i,9000,9000)
-			ResetTimer()
-		endif
-	next i
-	
-	
-	for i = 100 to 113
-		if GetSpriteCollision(i,200)
-			ex[1] = GetVirtualWidth()/2
-			ey[1] = 0-GetSpriteHeight(200)
-			plane[1] = 0
-			SetSpritePosition(200,ex[1], ey[1])
-		endif
-	next i
-	
-	
 return
