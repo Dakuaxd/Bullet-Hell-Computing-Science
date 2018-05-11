@@ -60,6 +60,10 @@ do
 			gosub level2
 	endif
 	gosub gameover
+	print(x[100])
+	print(y[100])
+	print(eby[300])
+	print(ey[1])
     Sync()
 loop
 variables:
@@ -81,8 +85,9 @@ variables:
 	bigbulletx = 0
 	startdelay = 0
 	gameover = 0
-	level = 1
-	plane as integer [50]
+	level = 0
+	fire as integer [50]
+	plane as integer [1000]
 	x as integer[200]
 	y as integer [200]
 	bullet as integer[200]
@@ -114,6 +119,7 @@ menuselect:// clicking on the menu
 			if GetTextHitTest(3, GetPointerX(), getpointery()) 
 					game = 1
 					menu = 0
+					level = 1
 					resettimer()
 					SettextPosition(3,9000,9000)
 					SettextPosition(4,9000,9000)
@@ -578,7 +584,13 @@ level1:
 		endif
 	else
 		SetSpritePosition(200, 9000, 9000)
-		SetSpritePosition(300,9000,9000)
+	//	SetSpritePosition(300,9000,9000)
+	endif
+	if eby[300] < GetVirtualHeight()
+		eby[300] = eby[300] + 10
+	endif
+	if eby[300] > GetVirtualheight() + 10
+		eby[300] = 9000
 	endif
 // move enemy plane bullets
 		for i = 300 to 300
@@ -590,7 +602,7 @@ level1:
 			endif
 			if Timer() > 1
 				SetSpriteVisible(i,1)
-				eby[i] = eby[i] + 20
+				eby[i] = eby[i] + 10
 				SetSpritePosition(i, ebx[i], eby[i])
 			endif 
 			if eby[i] > GetSpriteX(200) +GetVirtualHeight()
@@ -608,14 +620,15 @@ level1:
 // NEXT LVL COLLISIONS
 		for i = 100 to 113
 			for p = 200 to 250
-				if GetSpriteCollision(i, p) or GetSpriteCollision(i,999)   
+				if GetSpriteCollision(i, p) or GetSpriteCollision(999,p)   
 					if not ey[p-199] < 0 - 20
 						ex[p-199] = GetVirtualWidth()/2
 						ey[p-199] = 0-GetSpriteHeight(p)
 						setplane[p-199] = 0
 						level = 2
 						score = score + 10
-						SetSpritePosition(p ,ex[p-199 ] , ey[p-199])
+						ResetTimer()
+						SetSpritePosition(p ,ex[p-199] , ey[p-199])
 					endif
 				endif
 			next p
@@ -624,6 +637,7 @@ return
 
 
 level2:
+Print(str(250-199))
 Print(ey[2])
 print(ey[3])
 
@@ -640,11 +654,13 @@ print(ey[3])
 			setplane[3] = 1
 		endif
 		//making plane move
-		if setplane[2] = 1 and setplane[3] = 1 
+		if setplane[2] = 1
 				ey[2] = ey[2] + 5
 				SetSpritePosition(201, ex[2],ey[2])
-				ey[3] = ey[3] + 5
-				SetSpritePosition(202, ex[3],ey[3])
+		endif
+		if setplane[3] = 1
+			ey[3] = ey[3] + 5
+			SetSpritePosition(202, ex[3],ey[3])
 		endif
 		// limiting stuff
 		if ey[2] > GetVirtualHeight()/2 - GetSpriteHeight(201)
@@ -655,7 +671,7 @@ print(ey[3])
 		endif
 		////////////////////////////// Plane bullets //////////////////////////////////
 
-	/*for e1b = 301 to 302
+	for e1b = 301 to 302
 		If Timer() < 1
 				SetSpriteVisible(e1b,0)
 				ebx[i] = GetSpriteX(201) + GetSpriteWidth(201)/2 - GetSpriteWidth(e1b)/2
@@ -668,11 +684,11 @@ print(ey[3])
 				SetSpritePosition(e1b, ebx[e1b], eby[e1b])
 			endif 
 			if eby[e1b] > GetSpriteX(201) +GetVirtualHeight()
-				SetSpritePosition(i,9000,9000)
+				SetSpritePosition(e1b,9000,9000)
 				ResetTimer()
 			endif
 	next e1b
-	*/
+	
 	endif
 return
 
