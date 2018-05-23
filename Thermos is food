@@ -1,0 +1,1098 @@
+// Name: Shaishav Shah, Dillon Ren
+// Project: BULLET HELL 
+// Created: 2018-04-27
+// Last Edit: 2018-05-06
+
+// show all errors
+SetErrorMode(2)
+
+// set window properties
+SetWindowTitle( "BULLET HELL" )
+SetWindowSize( 728,1024, 0 )
+SetWindowAllowResize( 1 ) // allow the user to resize the window
+
+// set display properties
+SetVirtualResolution( 728, 1024 ) // doesn't have to match the window
+SetOrientationAllowed( 1, 1, 1, 1 ) // allow both portrait and landscape on mobile devices
+SetSyncRate( 30, 0 ) // 30fps instead of 60 to save battery
+SetScissor( 0,0,0,0 ) // use the maximum available screen space, no black borders
+UseNewDefaultFonts( 1 ) // since version 2.0.22 we can use nicer default fonts
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////// CODE STARTS HERE ////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+CreateImageColor(50, 100, 100, 100, 255)
+CreateSprite(78, 50)
+SetSpriteSize(78, GetVirtualWidth(), GetVirtualHeight())
+
+
+LoadImage(1,"Plane.png")
+CreateSprite(1,1)
+SetSpriteScale(1,0.75,0.75)
+px = GetVirtualWidth()/2 - GetSpriteWidth(1)/2
+py = GetVirtualHeight() - GetSpriteHeight(1) - 40
+SetSpriteVisible(1, 0)
+SetSpritePosition(1,px,py)
+
+LoadImage(999, "Bigbullet.png")
+CreateSprite(999,999)
+SetSpriteScale(999,3,3)
+SetSpritePosition(999, 6000,6000) // off the screen
+ex as integer[300]
+ey as integer[300]
+timers as integer[300]
+setbullet as integer [100007]
+
+LoadImage(77, "boss.png")
+CreateSprite(77,77)
+SetSpriteScale(77,2,2)
+SetSpritePosition(77,9000,9000)
+SetSpriteFlip(77,0,1)
+
+gosub makeenemy 
+gosub variables
+gosub makebullets
+gosub text
+gosub Makedots
+gosub bulletpositions
+do
+	gosub intro
+	gosub menuselect
+	gosub controls
+	gosub movement
+	if game = 1 and  gameover = 0
+			SetSpriteVisible(1,1)
+			Print(level)
+			print(phealth)
+			print(ehealth)
+			gosub planeonplanecollisions
+			gosub bigbullet
+			gosub Movedots
+			gosub movebullets
+			gosub levelchecker
+			gosub level1
+			gosub level2
+			gosub level3
+			gosub enemybulletcollisions
+			gosub collision
+			SetTextPosition(77, GetPointerX(), getpointery() - GetSpriteWidth(1)/2)
+			SetTextPosition(78, ex[4], getspriteY(77))
+	endif
+	gosub gameover
+    Sync()
+loop
+
+
+/////////////////////////////////////////////////SUBROUTINE////////////////////////////////////////////////////////
+variables:
+// Variables
+	controlselect = 1 // for picking wasd or mouse (1 is mouse, 2 is wasd)
+	intro = 1
+	menu = 0
+	game = 0
+	score = 0
+	controls = 0
+	shoot = 0
+	bulletcreate = 0
+	bulletshot = 0
+	bulletshot1 = 0
+	bulletshot2 = 0
+	bulletshot3 = 0
+	powerup = 0
+	bigbullety = 0
+	bigbulletx = 0
+	startdelay = 0
+	gameover = 0
+	level = 1
+	plane as integer [50]
+	x as integer[200]
+	y as integer [200]
+	bullet as integer[200]
+	setplane as integer[51]
+	eby as integer[501]
+	ebx as integer[501]
+	levelcheck as integer [100]
+	planedead as integer[500] 
+	bulletdelay as integer[500]
+	dirx = 1
+	phealth = 1000
+	ehealth = 10000
+	stage2 = 0 // boss "stage 2"
+	stage3 = 0 // boss "stage 3"
+
+return
+
+
+
+
+
+
+intro:
+	if intro = 1
+		
+			if GetPointerReleased() // LEft Click 
+				DeleteText(0) // added the word "OPERATION" in front for edge effect
+				DeleteText(1)
+				DeleteText(2)
+				menu = 1
+				intro = 0
+			endif
+		endif
+return
+
+
+
+
+
+
+
+
+menuselect:// clicking on the menu
+	if menu = 1
+		
+		SettextPosition(3,GetVirtualWidth()/2 - GetTextTotalWidth(3)/2,(GetVirtualHeight() - GetTextTotalHeight(3))/3 - 300)
+		SettextPosition(4,GetVirtualWidth()/2 - GetTextTotalWidth(4)/2, ((GetVirtualHeight() - GetTextTotalHeight(4))/3)*2 -300 )
+		SetSpriteVisible(1, 0)
+		if GetPointerPressed()
+			if GetTextHitTest(3, GetPointerX(), getpointery()) 
+					game = 1
+					menu = 0
+					level =1 
+					resettimer()
+					SettextPosition(3,9000,9000)
+					SettextPosition(4,9000,9000)
+					SetTextPosition(5,9000,9000)
+					SetTextPosition(6,9000,9000)
+			else
+				if GetTextHitTest(4, GetPointerX(), GetPointerY())
+					controls = 1
+					menu = 0
+					SettextPosition(3,9000,9000)
+					SettextPosition(4,9000,9000)
+					
+				endif
+			endif
+		endif
+	endif
+return
+
+
+
+
+
+
+
+controls:
+	if controls = 1
+		SettextPosition(3,9000,9000)
+		SettextPosition(4,9000,9000)
+		SetTextPosition(5, GetVirtualWidth()/2 - GetTextTotalWidth(5)/2, GetVirtualHeight()/2 - GetTExtTotalHeight(5)/2 - 200)
+		SetTextPosition(6, GetVirtualWidth()/2 - GetTextTotalWidth(6)/2, GetVirtualHeight()/2 - GetTExtTotalHeight(6)/2 + 200)
+		SetTextPosition(7, 50, GetVirtualHeight() - GetTextTotalheight(7) - 30)
+		SetSpriteVisible(1, 1) // Make it so the sprite is visible in the control screen to test the controls
+		if GetPointerReleased()
+			if GetTextHitTest(5, GetPointerX(), GetpointerY())
+				controlselect = 2 // clicking wasd
+			endif
+			if GetTextHitTest(6, GetPointerx(), GetPointery())
+				controlselect = 1 // clicking mouse
+			endif
+			if GetTextHitTest(7, GetPointerX(), GetPointerY())
+				SettextPosition(3,GetVirtualWidth()/2 - GetTextTotalWidth(3)/2,(GetVirtualHeight() - GetTextTotalHeight(3))/3 - 300)
+				SettextPosition(4,GetVirtualWidth()/2 - GetTextTotalWidth(4)/2, ((GetVirtualHeight() - GetTextTotalHeight(4))/3)*2 -300 )
+				SetTextPosition(5,9000,9000)
+				SetTextPosition(6,9000,9000)
+				SetTextPosition(7, 9000, 9000)
+				SetSpriteVisible(1, 0)
+				controls = 0
+				menu = 1
+			endif
+		endif
+		if GetRawKeyPressed(27) = 1 // hitting escape to go back
+			SettextPosition(3,GetVirtualWidth()/2 - GetTextTotalWidth(3)/2,(GetVirtualHeight() - GetTextTotalHeight(3))/3 - 300)
+			SettextPosition(4,GetVirtualWidth()/2 - GetTextTotalWidth(4)/2, ((GetVirtualHeight() - GetTextTotalHeight(4))/3)*2 -300 )
+			SetTextPosition(5,9000,9000)
+			SetTextPosition(6,9000,9000)
+			SetTextPosition(7, 9000, 9000)
+			SetSpriteVisible(1, 0)
+			controls = 0
+			menu = 1
+		endif
+	endif
+return
+
+
+
+
+
+
+
+
+movement:
+	if gameover = 0
+		if controlselect = 1 // mouse pointer control script
+			px = GetPOinterX() - GetSpriteWidth(1)/2
+			py = GetPointerY() - GetSpriteHeight(1)/2
+			if GetPointerX() - GetSpriteWidth(1)/2< 0
+				px = 0
+			endif
+			if GetPointerX() -GetSpriteWidth(1)/2> GetVirtualWidth() - GetSpriteWidth(1)
+				px = GetVirtualWidth() - GetSpriteWidth(1)
+			endif
+			if GetPOinterY() - GetSpriteHeight(1)/2< 0
+				py = 0
+			endif
+			if GetPOinterY() - GetSpriteHeight(1)/2> GetVirtualHeight() - GetSpriteHeight(1)
+				py = GetVirtualHeight() - GetSpriteHeight(1)
+			endif
+			SetSpritePosition(1, px, py)
+			endif
+		endif
+		if controlselect = 2 // wasd control script
+			if GetRawKeyState(87) = 1
+				py = py - 20
+			endif
+			if GetRawKeyState(83) = 1
+				py = py + 20
+			endif
+			if GetRawKeyState(65) = 1
+				px = px - 20
+			endif
+			if GetRawKeyState(68) = 1
+				px = px + 20
+			endif
+		
+	// boundaries
+			if px < 0
+				px = 0
+			endif
+			if px > GetVirtualWidth() - GetSpriteWidth(1)
+				px = GetVirtualWidth() - GetSpriteWidth(1)
+			endif
+			if py < 0
+				py = 0
+			endif
+			if py > GetVirtualHeight() - GetSpriteHeight(1)
+				py = GetVirtualHeight() - GetSpriteHeight(1)
+			endif
+		SetSpritePosition(1, px, py)
+	endif
+
+return
+
+Text:
+// for intro
+	CreateText(0, "OPERATION")
+	SetTextSize(0, 160)
+	SetTextPosition(0, GetVirtualWidth()/2 - GetTextTotalWidth(0)/2, GetVirtualHeight()/2 - GetTextTotalHeight(0)/2 - 100)
+	SetTextColor(0, 205,19,10,255)
+	
+	CreateText(1, "IRONCLAD")
+	SetTextSize(1, 160)
+	SetTextPosition(1, GetVirtualWidth()/2 - GetTextTotalWidth(1)/2, GetVirtualHeight()/2 - GetTextTotalHeight(1)/2)
+	SetTextColor(1, 205,19,10,255)
+	
+	 CreateText(2,"Click anywhere to begin")
+	SetTextSize(2,30)
+	SetTextPosition(2,GetVirtualWidth()/2 - GetTextTotalWidth(2)/2, GetVirtualHeight()/2 - GetTextTotalHeight(2)/2 + 100)
+// For menu
+	CreateText(3,"Play?")
+	SetTextSize(3,170)
+	SettextPosition(3,9000,9000)
+
+	CreateText(4, "Controls")
+	SettextSize(4,170)
+	SetTextPosition(4,9000,9000)
+	
+// For Controls
+	CreateText(5, "WASD")
+	SetTextSize(5, 130)
+	SetTextPosition(5,9000,9000)
+
+	CreateText(6, "Mouse")
+	SetTextSize(6, 130)
+	SetTextPosition(6,9000,9000)
+	
+	CreateText(7, "Back")
+	SetTextSize(7, 100)
+	SetTextPosition(7, 9000, 9000)
+
+// For Gameover
+	CreateText(8, "GameOver")
+	SetTextSize(8, 150)
+	SetTextPosition(8, 9000, 9000)
+	SetTextColor(8, 255, 0, 0, 255)
+	
+	CreateText(11, "You Won !!!")
+	SetTextSize(11, 150)
+	SetTextPosition(11, 9000, 9000)
+	SetTextColor(11, 0, 255, 0, 255)
+
+	
+	createtext(9,"Play Again ? ")
+	SetTextSize(9, 100)
+	SetTextPosition(9,9000,9000)
+	
+	createtext(10,"Quit")
+	SetTextSize(10,50)
+	SetTextPosition(10, 9000,9000)
+	
+	CreateText(77, str(phealth))
+	settextsize(77, 20)
+	SetTextPosition(77, 9000, 9000)
+	SetTextVisible(77,0)
+	
+	createtext(78, str(ehealth)) 
+	settextsize(78, 20)
+	SetTextPosition(78,9000,9000)
+	SetTextVisible(78,0)
+	
+return
+
+Makedots:
+	CreateImageColor(5,255,255,255,255)
+	for s=1 to 100
+		CreateSprite(s+1200,5)
+		SetSpriteSize(s+1200,2,2)
+		SetSpritePosition(s+1200,random(1,GetVirtualHeight()),random(1,GetVirtualHeight()))
+	next s
+return
+
+Movedots:
+	if gameover = 0
+		for s=1 to 100
+			StarY=GetSpriteY(1200+s) + 10
+			If StarY>GetVirtualHeight()
+				StarY=0
+			EndIf
+			SetSpritePosition(s+1200,GetSpritex(s+1200),StarY)
+		next s
+endif
+Return
+
+makebullets: // **Literally all of this is to make sure the bullets smoothly get fired and don't have a huge gap inbetween them (7 sets of bullets)
+	LoadImage(99,"Playerbullets.png")
+	for pb = 100 to 113
+		CreateSprite(pb, 99)
+		SetSpriteScale(pb,1.5,2)
+		SetSpritePosition(pb, 6000, 6000)
+	next pb
+
+ // enemy bullets
+	LoadImage(55,"MediumBullet.png")
+	for i = 300 to 500
+		CreateSprite(i,55)
+		SetSpriteSize(i,20,20)
+		ebx[i] = 6000
+		eby[i] = 9600
+		SetSpritePosition(i,ebx[i], eby[i])
+	 next i
+	 
+	 for i = 1 to 500
+		 bulletdelay[i] = 0
+	 next i
+ return
+	 
+movebullets:
+PrintC("Score : ")
+Print(str(score))
+	if GetPointerReleased() = 1 and bulletshot = 0 and bulletshot1 = 0 and bulletshot2 = 0 and bulletshot3 = 0 and bulletshot4 = 0 and bulletshot5 = 0
+		x[100] = GetSpriteX(1) + GetSpriteWidth(1)/2 - GetSpriteWidth(100) - GetSpriteWidth(100)/2
+		x[101] = GetSpriteX(1) + GetSpriteWidth(1)/2 + GetSpriteWidth(100) - GetSpriteWidth(100)/2
+		y[100] = GetSpriteY(1) + GetSpriteHeight(1)/2 - GetSpriteHeight(100)
+		y[101] = GetSpriteY(1) + GetSpriteHeight(1)/2 - GetSpriteHeight(100)
+		bulletshot = 1
+	endif
+	if bulletshot = 1
+		y[100] = y[100] - 100
+		y[101] = y[101] - 100
+		SetSpritePosition(100, x[100], y[100])
+		SetSpritePosition(101, x[101], y[101])
+	endif
+	
+	if y[112] < -100
+		bulletshot6 = 0
+	endif
+
+	if GetPointerReleased() = 1 and bulletshot = 1 and y[100] < GetSpriteY(1) - 600 and bulletshot1 = 0 and bulletshot2 = 0 and bulletshot3 = 0 and bulletshot4 = 0 and bulletshot5 = 0 and bulletshot6 = 0
+		x[102] = GetSpriteX(1) + GetSpriteWidth(1)/2 - GetSpriteWidth(100) - GetSpriteWidth(100)/2
+		x[103] = GetSpriteX(1) + GetSpriteWidth(1)/2 + GetSpriteWidth(100) - GetSpriteWidth(100)/2
+		y[102] = GetSpriteY(1) + GetSpriteHeight(1)/2 - GetSpriteHeight(100)
+		y[103] = GetSpriteY(1) + GetSpriteHeight(1)/2 - GetSpriteHeight(100)
+		bulletshot1 = 1
+	endif
+	if bulletshot1 = 1
+		y[102] = y[102] - 100
+		y[103] = y[103] - 100
+		SetSpritePosition(102, x[102], y[102])
+		SetSpritePosition(103, x[103], y[103])
+	endif
+	
+	if y[100] < -100
+		bulletshot = 0
+	endif
+
+	if GetPointerReleased() = 1 and bulletshot1 = 1 and y[102] < GetSpriteY(1) - 600 and bulletshot2 = 0 and bulletshot3 = 0 and bulletshot4 = 0 and bulletshot5 = 0 and bulletshot6 = 0 and bulletshot = 0
+		x[104] = GetSpriteX(1) + GetSpriteWidth(1)/2 - GetSpriteWidth(100) - GetSpriteWidth(100)/2
+		x[105] = GetSpriteX(1) + GetSpriteWidth(1)/2 + GetSpriteWidth(100) - GetSpriteWidth(100)/2
+		y[104] = GetSpriteY(1) + GetSpriteHeight(1)/2 - GetSpriteHeight(100)
+		y[105] = GetSpriteY(1) + GetSpriteHeight(1)/2 - GetSpriteHeight(100)
+		bulletshot2 = 1
+	endif
+	if bulletshot2 = 1
+		y[104] = y[104] - 100
+		y[105] = y[105] - 100
+		SetSpritePosition(104, x[104], y[104])
+		SetSpritePosition(105, x[105], y[105])
+	endif
+	
+	if y[100] < -100
+		bulletshot = 0
+	endif
+	
+	if y[102] < -100
+		bulletshot1 = 0
+	endif
+
+	if GetPointerReleased() = 1 and bulletshot2 = 1 and y[104] < GetSpriteY(1) - 600 and bulletshot3 = 0 and bulletshot4 = 0 and bulletshot5 = 0 and bulletshot6 = 0 and bulletshot = 0 and bulletshot1 = 0
+		x[106] = GetSpriteX(1) + GetSpriteWidth(1)/2 - GetSpriteWidth(100) - GetSpriteWidth(100)/2
+		x[107] = GetSpriteX(1) + GetSpriteWidth(1)/2 + GetSpriteWidth(100) - GetSpriteWidth(100)/2
+		y[106] = GetSpriteY(1) + GetSpriteHeight(1)/2 - GetSpriteHeight(100)
+		y[107] = GetSpriteY(1) + GetSpriteHeight(1)/2 - GetSpriteHeight(100)
+		bulletshot3 = 1
+	endif
+	if bulletshot3 = 1
+		y[106] = y[106] - 100
+		y[107] = y[107] - 100
+		SetSpritePosition(106, x[106], y[106])
+		SetSpritePosition(107, x[107], y[107])
+	endif
+	
+	if y[100] < -100
+		bulletshot = 0
+	endif
+	
+	if y[102] < -100
+		bulletshot1 = 0
+	endif
+
+	if y[104] < -100
+		bulletshot2 = 0
+	endif
+	
+	if GetPointerReleased() = 1 and bulletshot3 = 1 and y[106] < GetSpriteY(1) - 600 and bulletshot4 = 0 and bulletshot5 = 0 and bulletshot6 = 0 and bulletshot = 0 and bulletshot1 = 0 and bulletshot2 = 0
+		x[108] = GetSpriteX(1) + GetSpriteWidth(1)/2 - GetSpriteWidth(100) - GetSpriteWidth(100)/2
+		x[109] = GetSpriteX(1) + GetSpriteWidth(1)/2 + GetSpriteWidth(100) - GetSpriteWidth(100)/2
+		y[108] = GetSpriteY(1) + GetSpriteHeight(1)/2 - GetSpriteHeight(100)
+		y[109] = GetSpriteY(1) + GetSpriteHeight(1)/2 - GetSpriteHeight(100)
+		bulletshot4 = 1
+	endif
+	if bulletshot4 = 1
+		y[108] = y[108] - 100
+		y[109] = y[109] - 100
+		SetSpritePosition(108, x[108], y[108])
+		SetSpritePosition(109, x[109], y[109])
+	endif
+	
+	if y[100] < -100
+		bulletshot = 0
+	endif
+	
+	if y[102] < -100
+		bulletshot1 = 0
+	endif
+
+	if y[104] < -100
+		bulletshot2 = 0
+	endif
+	
+	if y[106] < -100
+		bulletshot3 = 0
+	endif
+
+	if GetPointerReleased() = 1 and bulletshot4 = 1 and y[108] < GetSpriteY(1) - 600 and bulletshot5 = 0 and bulletshot = 0 and bulletshot6 = 0 and bulletshot1 = 0 and bulletshot2 = 0 and bulletshot3 = 0
+		x[110] = GetSpriteX(1) + GetSpriteWidth(1)/2 - GetSpriteWidth(100) - GetSpriteWidth(100)/2
+		x[111] = GetSpriteX(1) + GetSpriteWidth(1)/2 + GetSpriteWidth(100) - GetSpriteWidth(100)/2
+		y[110] = GetSpriteY(1) + GetSpriteHeight(1)/2 - GetSpriteHeight(100)
+		y[111] = GetSpriteY(1) + GetSpriteHeight(1)/2 - GetSpriteHeight(100)
+		bulletshot5 = 1
+	endif
+	if bulletshot5 = 1
+		y[110] = y[110] - 100
+		y[111] = y[111] - 100
+		SetSpritePosition(110, x[110], y[110])
+		SetSpritePosition(111, x[111], y[111])
+	endif
+	
+	if y[100] < -100
+		bulletshot = 0
+	endif
+	
+	if y[102] < -100
+		bulletshot1 = 0
+	endif
+
+	if y[104] < -100
+		bulletshot2 = 0
+	endif
+	
+	if y[106] < -100
+		bulletshot3 = 0
+	endif
+	
+	if y[108] < -100
+		bulletshot4 = 0
+	endif
+	
+	if GetPointerReleased() = 1 and bulletshot5 = 1 and y[110] < GetSpriteY(1) - 600 and bulletshot = 0  and bulletshot1 = 0 and bulletshot2 = 0 and bulletshot3 = 0 and bulletshot4 = 0 and bulletshot6 = 0
+		x[112] = GetSpriteX(1) + GetSpriteWidth(1)/2 - GetSpriteWidth(100) - GetSpriteWidth(100)/2
+		x[113] = GetSpriteX(1) + GetSpriteWidth(1)/2 + GetSpriteWidth(100) - GetSpriteWidth(100)/2
+		y[112] = GetSpriteY(1) + GetSpriteHeight(1)/2 - GetSpriteHeight(100)
+		y[113] = GetSpriteY(1) + GetSpriteHeight(1)/2 - GetSpriteHeight(100)
+		bulletshot6 = 1
+	endif
+	if bulletshot6 = 1
+		y[112] = y[112] - 100
+		y[113] = y[113] - 100
+		SetSpritePosition(112, x[112], y[112])
+		SetSpritePosition(113, x[113], y[113])
+	endif
+	
+	if y[100] < -100
+		bulletshot = 0
+	endif
+	if y[102] < -100
+		bulletshot1 = 0
+	endif
+	if y[104] < -100
+		bulletshot2 = 0
+	endif
+	if y[106] < -100
+		bulletshot3 = 0
+	endif
+	if y[108] < -100
+		bulletshot4 = 0
+	endif
+	if y[110] < -100
+		bulletshot5 = 0
+	endif
+return
+
+bulletpositions:
+	for i = 100 to 113
+		x[i] = 2000
+		y[i]  = 1000
+		SetSpritePosition(i, x[ i], y[i] )
+	next i
+return
+
+bigbullet:
+	if GetRawKeyPressed(66) = 1  and powerup = 0// Space key
+		bigbullety = GetSpriteY(1)
+		bigbulletx = GetSpriteX(1)
+		SetSpritePosition(999, GetSpriteX(1) + GetSpriteWidth(1)/2 - GetSpriteWidth(999)/2, GetspriteY(1))
+		powerup = 1
+	endif
+
+	if powerup = 1
+		bigbullety = bigbullety - 40
+		SetSpritePosition(999,bigbulletx + GetSpriteWidth(1)/2 - GetSpriteWidth(999)/2, bigbullety)
+	endif
+		
+	if bigbullety < GetSpriteY(1) - GetVirtualHeight()
+		powerup = 0
+			SetSpritePosition(999,6000,6000) // hiding it again
+	endif
+return
+
+planeonplanecollisions:
+		if GetSpriteCollision(1, 200)
+			phealth = phealth - 50
+		endif
+		if GetSpriteCollision(1, 201)
+			phealth = phealth - 50
+		endif
+		if GetSpriteCollision(1, 202)
+			phealth = phealth - 50
+		endif
+		if GetSpriteCollision(1, 203)
+			phealth = phealth - 50
+		endif
+		if getspritecollision(1, 77)
+			phealth = phealth - 50
+		endif
+		if phealth < 1
+			gameover = 1
+		endif
+return
+
+makeenemy:
+
+	LoadImage(666, "Planebad.png")
+	for i = 200 to 250
+		CreateSprite(i, 666)
+		SetSpriteFlip(i,0,1)
+		SetSpriteScale(i,0.75,0.75)
+		ex[i] = 9000
+		ey[i] = 9000
+		SetSpritePosition(i, ex[i], ey[i])
+	next i
+	
+return
+
+levelchecker:
+	if startdelay = 1
+		if setplane[1] = 0 and levelcheck[1] = 1
+			level = 2
+		endif
+		if setplane[2] = 0 and setplane[3] = 0 and levelcheck[2] = 1 
+			level = 3
+		endif
+	endif
+return
+
+
+level1:
+	if timer() > 2
+		startdelay = 1
+	endif
+	// move enemy plane
+	if level = 1 and gameover = 0 and startdelay = 1
+		if setplane[1] = 0
+			ey[1] = 0 - GetSpriteHeight(200)
+			ex[1] = GetVirtualWidth()/2 - GetSpriteWidth(200)/2
+			SetSpritePosition(200,ex[1],ey[1])
+			setplane[1] = 1
+			levelcheck[1] = 1
+		endif
+		if not ey[1] > GetVirtualHeight() and setplane[1] = 1
+			ey[1] = ey[1] + 5
+			SetSpritePosition(200, ex[1],ey[1])
+		endif
+		if ey[1] > GetVirtualHeight()/2 - GetSpriteHeight(200)
+			ey[1] = GetVirtualHeight()/2  - GetSpriteHeight(200)
+		endif
+	else
+		SetSpritePosition(200, 9000, 9000)
+	endif
+// move enemy plane bullets
+	for i = 300 to 300
+		If Timer() < 1
+			SetSpriteVisible(i,0)
+			ebx[i] = GetSpriteX(200) + GetSpriteWidth(200)/2 - GetSpriteWidth(i)/2
+			eby[i] = GetSpriteY(200) + GetSpriteHeight(200)/2 - GetSpriteheight(i)/2
+			SetSpritePosition(i, ebx[i], eby[i])
+		endif
+		if Timer() > 1
+			SetSpriteVisible(i,1)
+			eby[i] = eby[i] + 20
+			SetSpritePosition(i, ebx[i], eby[i])
+		endif 
+		if eby[i] > GetSpriteY(200) +GetVirtualHeight()
+			SetSpritePosition(i,6000,6000)
+			ResetTimer()
+		endif
+	next i
+return
+
+level2:
+
+	if level = 2 and gameover = 0 
+		//////////////////////////////////setting plane positons to above screen/////////////////////////////
+		if setplane[2] = 0 and setplane[3] = 0 
+			ex[2] = GetVirtualWidth()/4 - GetSpriteWidth(201)/2
+			ey[2] = 0 - GetSpriteHeight(200)
+			ex[3] = (GetVirtualWidth()/4)*3  - GetSpriteWidth(202)/2
+			ey[3] =  0 - GetSpriteHeight(200)
+			SetSpritePosition(201, ex[2],ey[2])
+			SetSpritePosition(202, ex[3], ey[3])
+			setplane[2] = 1
+			setplane[3] = 1
+			levelcheck[2] = 1
+		endif
+		//making plane move
+		if setplane[2] = 1
+				ey[2] = ey[2] + 5
+				SetSpritePosition(201, ex[2],ey[2])
+		endif
+		if setplane[3] = 1
+				ey[3] = ey[3] + 5
+				SetSpritePosition(202, ex[3],ey[3])
+		endif
+		// limiting stuff
+		if ey[2] > GetVirtualHeight()/2 - GetSpriteHeight(201)
+				ey[2] = GetVirtualHeight()/2  - GetSpriteHeight(201)
+		endif
+		if ey[3] > GetVirtualHeight()/2 - GetSpriteHeight(202)
+				ey[3] = GetVirtualHeight()/2  - GetSpriteHeight(202)
+		endif
+		////////////////////////////// Plane bullets //////////////////////////////////
+		for i = 301 to 301  // 1st plane bullet
+			if getspriteY(201) > 0
+				if setbullet[2] = 0
+					SetSpriteVisible(i,0)
+					ebx[i] = GetSpriteX(201) + GetSpriteWidth(201)/2 - GetSpriteWidth(i)/2
+					eby[i] = GetSpriteY(201) + GetSpriteHeight(201)/2 - GetSpriteheight(i)/2
+					setbullet[2] = 1
+				endif
+			endif		
+			if setbullet[2] = 1
+				SetSpriteVisible(i,1)
+				eby[i] = eby[i] + 20
+				SetSpritePosition(i, ebx[i], eby[i])
+			endif 
+			if eby[i] > GetVirtualHeight() + GetSpriteHeight(i) + 50
+				SetSpritePosition(i, 6000, 6000)
+				setbullet[2] = 0
+			endif
+		next i
+		for i = 302 to 302  // 2nd plane bullet
+			if GetSpriteY(202)> 0
+				if setbullet[3] = 0
+					SetSpriteVisible(i,0)
+					ebx[i] = GetSpriteX(202) + GetSpriteWidth(202)/2 - GetSpriteWidth(i)/2
+					eby[i] = GetSpriteY(202) + GetSpriteHeight(202)/2 - GetSpriteheight(i)/2
+					setbullet[3] = 1
+				endif		
+			endif
+			if setbullet[3] = 1
+				SetSpriteVisible(i,1)
+				eby[i] = eby[i] + 20
+				SetSpritePosition(i, ebx[i], eby[i])
+			endif 
+			if eby[i] > GetVirtualHeight() + GetSpriteHeight(i)
+				SetSpritePosition(i, 6000, 6000)
+				setbullet[3] = 0
+			endif
+		next i
+	elseif setbullet[2] = 1 or setbullet[3] = 1
+		if setbullet[2] = 1
+			SetSpriteVisible(301,1)
+			eby[301] = eby[301] + 20	
+			SetSpritePosition(301, ebx[301], eby[301])
+		endif 
+		if eby[301] > GetVirtualHeight() + GetSpriteHeight(i) + 50
+			SetSpritePosition(i, 6000, 6000)
+			setbullet[2] = 0
+		endif
+		
+		if setbullet[3] = 1
+			SetSpriteVisible(302,1)
+			eby[302] = eby[302] + 20
+			SetSpritePosition(302, ebx[302], eby[302])
+		endif 
+		if eby[302] > GetVirtualHeight() + GetSpriteHeight(302)
+			SetSpritePosition(302, 6000, 6000)
+			setbullet[3] = 0
+		endif
+	endif
+return
+
+level3:
+
+	if level = 3 and gameover = 0 
+		///////////// plane move
+		if setplane[4] = 0
+			for i = 100 to 113
+				for p = 200 to 250
+					SetSpritePosition(i,6000,6000)
+					SetSpritePosition(p,9000,9000)
+				next p
+			next i
+			ey[4] = 0 - GetSpriteHeight(77)
+			ex[4] = GetVirtualWidth()/2 - GetSpriteWidth(77)/2
+			SetSpritePosition(77,ex[4],ey[4])
+			SetTextVisible(77,1)
+			SetTextVisible(78,1)
+			setplane[4] = 1
+			levelcheck[3] = 1
+		endif
+		if  not ey[4] > GetVirtualHeight()/2 - GetSpriteHeight(77) and setplane[4] = 1
+			ey[4] = ey[4] + 3
+			SetSpritePosition(77, ex[4],ey[4])
+		endif
+		
+		for i = 304 to 304
+				if setbullet[i-300] = 0
+					SetSpriteVisible(i,0)
+					ebx[i] = GetSpriteX(77) + (GetSpriteWidth(77)/8) + 5
+					eby[i] = GetSpriteY(77) + GetSpriteHeight(77) - 100
+					setbullet[i-300] = 1
+				endif		
+				if setbullet[i-300] = 1
+					SetSpriteVisible(i,1)
+					eby[i] = eby[i] + 20
+					SetSpritePosition(i, ebx[i], eby[i])
+				endif 
+				if eby[i] > GetVirtualHeight() + GetSpriteHeight(i) 
+					setbullet[i - 300] = 0
+					SetSpritePosition(i, 6000, 6000)
+				endif
+		next i
+		for i = 305 to 305
+				if setbullet[i-300] = 0
+					SetSpriteVisible(i,0)
+					ebx[i] = GetSpriteX(77) + 7*(GetSpriteWidth(77)/8) -25
+					eby[i] = GetSpriteY(77) + GetSpriteHeight(77) - 100
+					setbullet[i-300] = 1
+				endif		
+				if setbullet[i-300] = 1
+					SetSpriteVisible(i,1)
+					eby[i] = eby[i] + 20
+					SetSpritePosition(i, ebx[i], eby[i])
+				endif 
+				if eby[i] > GetVirtualHeight() + GetSpriteHeight(i) 
+					setbullet[i - 300] = 0
+					SetSpritePosition(i, 6000, 6000)
+				endif
+		next i
+		for i = 306 to 306 
+				if setbullet[i-300] = 0 
+					SetSpriteVisible(i,0)
+					ebx[i] = GetSpriteX(77) + 6*(GetSpriteWidth(77)/8) -95
+					eby[i] = GetSpriteY(77) + GetSpriteHeight(77) -25
+					setbullet[i-300] = 1
+				endif		
+				eby[i] = eby[i] + 7
+				if setbullet[i-300] = 1
+					SetSpriteVisible(i,1)
+					if getpointerX() - 50> ebx[i]
+						ebx[i] = ebx[i] + 5
+					endif
+					if GetPointerX () - 50 < ebx[i] 
+						ebx[i] = ebx[i] - 5
+					endif
+					SetSpritePosition(i, ebx[i], eby[i])
+				endif
+				if 100 < bulletdelay[i]
+					setbullet[i - 300] = 0
+					SetSpritePosition(i, 6000, 6000)
+					bulletdelay[i] = 0
+				else
+					bulletdelay[i] = bulletdelay[i] + 1
+				endif
+		next i
+		for i = 307 to 307
+				if setbullet[i-300] = 0
+					SetSpriteVisible(i,0)
+					ebx[i] = GetSpriteX(77) + 2*(GetSpriteWidth(77)/8)  +95
+					eby[i] = GetSpriteY(77) + GetSpriteHeight(77) -25
+					setbullet[i-300] = 1
+				endif		
+				eby[i] = eby[i] + 7
+				if setbullet[i-300] = 1
+					SetSpriteVisible(i,1)
+					//eby[i] = eby[i] + 15// downwards
+					if getpointerX() + 50> ebx[i]
+						ebx[i] = ebx[i] + 5
+					endif
+					if GetPointerX() + 50 < ebx[i] 
+						ebx[i] = ebx[i] - 5
+					endif
+					SetSpritePosition(i, ebx[i], eby[i])
+				endif
+				if 100 < bulletdelay[i]
+					setbullet[i - 300] = 0
+					SetSpritePosition(i, 6000, 6000)
+					bulletdelay[i] = 0
+				else
+					bulletdelay[i] = bulletdelay[i] + 1
+				endif
+		next i
+		// state 2
+	if ehealth < 7000  and stage2 = 0
+			stage2 = 1
+			for i = 308 to 308
+				ebx[i] = GetSpriteWidth(77)/2 + GetSpriteWidth(i)/2
+				eby[i] = GetSpriteHeight(77) - 20
+				ebx[i] = ebx[i] + 4
+				eby[i] = eby[i] + 4
+				setSpritePosition(i, ebx[i], eby[i])
+			next i
+			for i = 309 to 309
+				ebx[i] = GetSpriteWidth(77)/2 + GetSpriteWidth(i)/2
+				eby[i] = GetSpriteHeight(77) - 20
+				ebx[i] = ebx[i] - 4
+				eby[i] = eby[i] + 4
+				setSpritePosition(i, ebx[i], eby[i])
+			next i
+			for i = 310 to 310
+				ebx[i] = GetSpriteWidth(77)/2 + GetSpriteWidth(i)/2
+				eby[i] = GetSpriteHeight(77) - 20
+				eby[i] = eby[i] + 4
+				setSpritePosition(i, ebx[i], eby[i])
+			next i
+	endif
+	if  ehealth < 7000and stage2 = 1
+		ebx[308] = ebx[308] + 4
+		eby[308] = eby[308] + 4
+		ebx[309] = ebx[309] - 8
+		eby[309] = eby[309] + 8
+		eby[310] = eby[310] + 8
+		SetSpritePosition(308, ebx[308], eby[308])
+		SetSpritePosition(309, ebx[309], eby[309])
+		SetSpritePosition(310, ebx[310], eby[310])
+	endif
+	// stage 3
+	
+	if ehealth < 4000 and stage3 = 0
+			stage3 = 1
+			for i = 311 to 311
+				ebx[i] = GetSpriteWidth(77)/2 + GetSpriteWidth(i)/2
+				eby[i] = GetSpriteHeight(77) - 20
+				ebx[i] = ebx[i] + 4
+				eby[i] = eby[i] + 4
+				setSpritePosition(i, ebx[i], eby[i])
+			next i
+			for i = 312 to 312
+				ebx[i] = GetSpriteWidth(77)/2 + GetSpriteWidth(i)/2
+				eby[i] = GetSpriteHeight(77) - 20
+				ebx[i] = ebx[i] - 4
+				eby[i] = eby[i] + 4
+				setSpritePosition(i, ebx[i], eby[i])
+			next i
+			for i = 313 to 313
+				ebx[i] = GetSpriteWidth(77)/2 + GetSpriteWidth(i)/2
+				eby[i] = GetSpriteHeight(77) - 20
+				eby[i] = eby[i] + 4
+				setSpritePosition(i, ebx[i], eby[i])
+			next i
+	endif
+	if  ehealth < 4000 and stage3 = 1
+		ebx[311] = ebx[311] + 8
+		eby[311] = eby[311] + 8
+		ebx[312] = ebx[312] - 4
+		eby[312] = eby[312] + 4
+		eby[313] = eby[313] + 8
+		SetSpritePosition(311, ebx[311], eby[311])
+		SetSpritePosition(312, ebx[312], eby[312])
+		SetSpritePosition(313, ebx[313], eby[313])
+	endif
+	
+		// special collisions
+
+		for i = 304 to 307
+			if GetSpriteCollision(i,1)
+				if  phealth > 3
+					phealth = phealth - 3
+					settextstring(77, Str(phealth))
+				elseif phealth > 0 and phealth < 4
+					gameover = 1
+				endif
+				SetSpritePosition(i, 6000,6000)
+				setbullet[i - 300] = 0
+			endif
+		next i
+		// other special collisions
+for i = 100 to 113
+	if ey[4] > 0 - GetSpriteHeight(77)/2
+		if GetSpriteCollision(i,77)
+			if ehealth > 20
+				ehealth = ehealth - 20
+				settextstring(78, str(ehealth))
+			elseif ehealth > 0 and ehealth < 21
+				gameover = 1
+			endif
+			SetSpritePosition(i,6000,6000)
+		endif
+		if GetSpriteCollision(999,77)
+			if ehealth > 25
+				ehealth = ehealth - 25
+				SettextString(78, str(ehealth))
+			elseif ehealth > 0 and ehealth < 51
+				gameover = 1
+			endif
+			SetSpritePosition(999,6000,6000)
+		endif
+	endif
+next i 
+		
+	endif
+return
+
+	
+enemybulletcollisions:
+	if not level = 3
+		for i = 300 to 500
+				if GetSpriteCollision(i, 1)
+				gameover = 1
+				ex[i-299] = GetVirtualWidth()/2
+				ey[i-299] = 0-GetSpriteHeight(200)
+				SetSpritePosition(200,ex[i-299], ey[i-299])
+			endif
+		next i
+	endif
+return
+
+collision:
+	if not level = 3 and game = 1
+		for i = 100 to 113
+			for p = 200 to 250
+				if GetSpriteCollision(i, p) or GetSpriteCollision(p,999)   
+					if not ey[p-199] < 0 - 20
+						ex[p-199] = GetVirtualWidth()/2
+						ey[p-199] = 0-(GetSpriteHeight(p))*2
+						for j = 300 to 500
+							SetSpritePosition(i, 6000,6000)
+						next j
+							SetSpritePosition(p, 9000,9000)
+						planedead[p] = 1
+						setplane[p-199] = 0
+						score = score + 10
+						SetSpritePosition(p ,ex[p-199 ] , ey[p-199])
+					endif
+				endif
+			next p
+		next i
+	endif
+return
+
+gameover:
+	if gameover = 1
+		settextposition(77,9000,9000)
+		settextposition(78,9000,9000)
+		SetSpritePosition(1,9000,9000)
+		SetSpritePosition(77,9000,9000)
+		if ehealth < 51 and ehealth > 0 
+			SetTextPosition(11, GetVirtualWidth()/2  - GetTextTotalWidth(8)/2, GetVirtualHeight()/2 - GetTextTotalHeight(8)/2 - 100)
+		else
+			SetTextPosition(8, GetVirtualWidth()/2  - GetTextTotalWidth(8)/2, GetVirtualHeight()/2 - GetTextTotalHeight(8)/2 - 100)
+		endif
+		SetTextPosition(9,  GetVirtualWidth()/2  - GetTextTotalWidth(9)/2, GetVirtualHeight()/2 - GetTextTotalHeight(9)/2 + 100)
+		SetTextPosition( 10, GetVirtualWidth()/2  - GetTextTotalWidth(10)/2, GetVirtualHeight() - GetTextTotalHeight(10)  - 50)
+		for i = 300 to 500
+			eby[i] = 6000
+			ebx[i] = 6000
+			SetSpritePosition(i, ebx[i], eby[i])
+		next i
+		for i = 200 to 250
+			ex[i] = 9000
+			ey[i] = 9000
+			SetSpritePosition(i, ex[i],ey[i])
+		next i 
+		if GetPointerReleased()
+			if GetTextHitTest(9, getPointerX(), GetPointerY())
+				for i  = 1 to 50
+					setplane[i] = 0
+				next i
+				for i = 1 to 50
+					levelcheck[i] = 0
+				next i
+				for i = 8 to 11
+					SetTextPosition(i, 9000, 9000)
+				next i
+				ehealth = 10000
+				phealth = 1000
+				stage2 = 0
+				stage1 = 0
+				menu = 1
+				game = 0
+				gameover = 0
+				startdelay = 0
+				level = 0
+			endif
+			if GetTextHitTest(10, GetPointerX(), GetPointerY())
+				end
+			endif
+		endif
+	endif
+return
